@@ -1,5 +1,6 @@
 import json
 import os
+import random
 import time
 from urllib.parse import parse_qs, unquote
 import requests
@@ -35,6 +36,9 @@ def main():
         coub = Coub()
         tokens = load_query()
         tasks = load_task()
+        delay = int(24 * random.randint(3600, 3650))
+        # generate_token()
+        start_time = time.time()
         for index, token in enumerate(tokens, start=1):
             list_id = []
             print_(f"====== Account {index} ======")
@@ -50,7 +54,13 @@ def main():
                     print_(f"{task.get('title')} Starting task...")
                     coub.claim_task(token, task.get('id'), task.get('title'))
             
-        break
+        end_time = time.time()
+        total = delay - (end_time-start_time)
+        hours, remainder = divmod(total, 3600)
+        minutes, seconds = divmod(remainder, 60)
+        print_(f"[ Restarting In {int(hours)} Hours {int(minutes)} Minutes {int(seconds)} Seconds ]")
+        if total > 0:
+            time.sleep(total)
 
 
 
