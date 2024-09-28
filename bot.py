@@ -59,7 +59,8 @@ def main():
             data_reward = coub.get_rewards(token=token)
             for data in data_reward:
                 id = data.get('id',0)
-                list_id.append(id)
+                if id not in [2,12,13,15,16,19]:
+                    list_id.append(id)
             for task in tasks:
                 id = task.get('id')
                 if id in list_id:
