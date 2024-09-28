@@ -1,3 +1,4 @@
+import base64
 import json
 import os
 import random
@@ -17,7 +18,7 @@ def clear_terminal():
     
 def load_query():
     try:
-        with open('coub_token.txt', 'r') as f:
+        with open('coub_query.txt', 'r') as f:
             queries = [line.strip() for line in f.readlines()]
         return queries
     except FileNotFoundError:
@@ -31,17 +32,30 @@ def load_task():
      data = json.loads(open("task.json").read())
     #  task = data.strip().split('\n')
      return data
+
+def parse_query(query: str):
+    parsed_query = parse_qs(query)
+    parsed_query = {k: v[0] for k, v in parsed_query.items()}
+    user_data = json.loads(unquote(parsed_query['user']))
+    parsed_query['user'] = user_data
+    return parsed_query
+
 def main():
+
     while True:
         coub = Coub()
-        tokens = load_query()
+        queries = load_query()
         tasks = load_task()
+        sum = len(queries)
         delay = int(24 * random.randint(3600, 3650))
         # generate_token()
         start_time = time.time()
-        for index, token in enumerate(tokens, start=1):
+        for index, query in enumerate(queries, start=1):
             list_id = []
-            print_(f"====== Account {index} ======")
+            user = parse_query(query).get('user')
+            username = user.get('username','')
+            print_(f"====== Account {index}/{sum} | {username} ======")
+            token = coub.login(query)
             data_reward = coub.get_rewards(token=token)
             for data in data_reward:
                 id = data.get('id',0)
@@ -51,6 +65,7 @@ def main():
                 if id in list_id:
                     print_(f"{task.get('title')} Done...")
                 else:
+                    time.sleep(2)
                     print_(f"{task.get('title')} Starting task...")
                     coub.claim_task(token, task.get('id'), task.get('title'))
             
@@ -61,7 +76,6 @@ def main():
         print_(f"[ Restarting In {int(hours)} Hours {int(minutes)} Minutes {int(seconds)} Seconds ]")
         if total > 0:
             time.sleep(total)
-
 
 
 if __name__ == "__main__":
